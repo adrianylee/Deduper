@@ -26,13 +26,48 @@ def deduplicate(STL96.txt):
                 if line begins with "@":
                     write to output (non PCR lines should remain unchanged)
                     continue
-                record QNAME, RNAME, FLAG, POS, and CIGAR
-                    if record doesnt match current, replace current with record
-                    check if UMI is valid with end of QNAME
-                    calculate 5' position by using CIGAR codes. determine leading/trailing then use if forward/reverse strand to get the corrected starting position?
+                
+                record = split line by tabs and record QNAME, RNAME, FLAG, POS, and CIGAR
+                convert FLAG and POS to integers
                     
+                    if RNAME doesnt match current, replace current with RNAME
                     
+                    umi = end of QNAME
+
+                    check if umi is valid. Increase invalidUMI count if it isn't. continue
+
+                    if FLAG == 16:
+                        strand = reverse
+                    else:
+                        strand = forward
+
+                    corrected_position = calculate 5' position by using CIGAR codes and convert to integers. if strand == forward:
+                        check to see if S is at the left end of CIGAR, if it is note the integer value
+                        
+                        corrected_position = POS - S integer value (or 0 if one doesn't exist)
+
+                    reverse:
+                        check to see if S is at the right end of CIGAR, note integer value
+
+                        corrected_position = POS + S integer value (or 0 if one doesn't exist)
+
+                    isItDuplicate = RNAME, strand, umi, corrected_position
+
+                    If isItDuplicate in seen (set):
+                        duplicates += 1
+                        continue
+
+                    add isItDuplicate to seen (set)
+                    add record to output sam
+                    counts += 1
         
+        close output sam
+    close input sam
+
+    return coutns, duplicates, invalidUMI
+                    
+                    
+recheck corrected position logic. 
 
 
 
