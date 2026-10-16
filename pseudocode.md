@@ -75,8 +75,8 @@ def getUMI(qname):
 
 def correctedPosition(POS, CIGAR, strand):
     split CIGAR into a list of lists
-    create new list CIGARsets = []
-    current = ""
+    create new list CIGARsets = [], will be a list of lists
+    current = "", will store current integer as string (and build off of it if it is more than a 1 digit number)
     For character in CIGAR: 
         If character == any integer:
             append character to current -- want to bput all integer values together before it's appended to the list integers come first, so this is the first check
