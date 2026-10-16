@@ -10,15 +10,21 @@ Goal: identify reads that likely came from the same molecule and keep only one (
 
 Sort SAM file by coordinates (chrosome first, then by POS)
 
-def deduplicate(STL96.txt):
+
+def deduplicate(input.sam, output.sam, STL96.txt):
 
     create an empty set, seen = set()
     track current chromosome, current = None
 
-    create variables for counts, duplicates, and invalidUMI
+    create variables for counts, duplicates, and invalidUMI. These are variables that will need to be outputted at the end.
     counts = 0
     duplicates = 0
     invalidUMI = 0
+
+    validUMIs = set()
+    open STL96.txt
+        for line in STL96.txt:
+            add umi to validUMIs set
 
     open input sam file:
         open output same file:
@@ -27,31 +33,27 @@ def deduplicate(STL96.txt):
                     write to output (non PCR lines should remain unchanged)
                     continue
                 
-                record = split line by tabs and record QNAME, RNAME, FLAG, POS, and CIGAR
-                convert FLAG and POS to integers
+                record = split line by tabs and record QNAME, RNAME, FLAG, POS, and CIGAR as separate variables
+                QNAME = record[0]
+                RNAME = record[2]
+                FLAG = record[1]
+                POS = record[3]
+                CIGAR = record[5]
                     
-                    if RNAME doesnt match current, replace current with RNAME
+                    if RNAME doesnt match current Chromosome, replace current with RNAME
                     
-                    umi = end of QNAME
+                    umi = end of QNAME (after the last semi colon). Call getUMI function.
+                    check if umi is valid compare to STL96.txt. Increase invalidUMI count if it isn't. continue
 
-                    check if umi is valid. Increase invalidUMI count if it isn't. continue
-
+                    check for forward or reverse strand
                     if FLAG == 16:
                         strand = reverse
                     else:
                         strand = forward
 
-                    corrected_position = calculate 5' position by using CIGAR codes and convert to integers. if strand == forward:
-                        check to see if S is at the left end of CIGAR, if it is note the integer value
-                        
-                        corrected_position = POS - S integer value (or 0 if one doesn't exist)
+                    correctedPosition = CALL CIGAR FUNCTION HERE (instead)                    
 
-                    reverse:
-                        check to see if S is at the right end of CIGAR, note integer value
-
-                        corrected_position = POS + S integer value (or 0 if one doesn't exist)
-
-                    isItDuplicate = RNAME, strand, umi, corrected_position
+                    isItDuplicate = RNAME, strand, umi, correctedPosition
 
                     If isItDuplicate in seen (set):
                         duplicates += 1
@@ -66,8 +68,41 @@ def deduplicate(STL96.txt):
 
     return coutns, duplicates, invalidUMI
                     
+
+def getUMI(qname):
+    fields = split(qname) by ":"
+    return fields[-1]
+
+def correctedPosition(POS, CIGAR, strand):
+    split CIGAR into a list of lists
+    create new list CIGARsets = []
+    current = ""
+    For character in CIGAR: 
+        If character == any integer:
+            append character to current -- want to bput all integer values together before it's appended to the list integers come first, so this is the first check
+        else:
+            append [current, character] to CIGARsets -- if it's a non-integer value, it must be a single digit character CIGAR code, this will be the second part of the set. 
+
+    create new variables for leading, trailing, and referenceLength and set them equal to 0
+    correctedPosition = calculate 5' position by using CIGAR codes and convert to integers. 
+    if strand == forward:
+        check to see if S is at the left end of CIGAR, if it is not:
+            S = the integer value
+                        
+        correctedPosition = POS - S leading integer value (or 0 if one doesn't exist, soft clipping must lead)
+
+    if strand == reverse:
+        check to see if S is at the right end of CIGAR, note integer value
+
+        referenceLength = length of all M + D + N + = + X
+        correctedPosition = POS + referenceLength - 1 + trailing S (or 0 if one doesn't exist, soft clipping must end)
+
+    return correctedPosition
+
+
                     
-recheck corrected position logic. 
+
+
 
 
 
