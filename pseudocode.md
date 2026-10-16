@@ -46,7 +46,7 @@ def deduplicate(input.sam, output.sam, STL96.txt):
                     check if umi is valid compare to STL96.txt. Increase invalidUMI count if it isn't. continue
 
                     check for forward or reverse strand
-                    if FLAG == 16:
+                    if FLAG & 16:
                         strand = reverse
                     else:
                         strand = forward
